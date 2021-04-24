@@ -8,18 +8,22 @@ using UnityEngine.Timeline;
 public class Zombie : MonoBehaviour
 {
     public bool isDead = false;
-    public Color aliveSprite ,deadSprite;
     public SpriteRenderer spr;
     public Rigidbody2D rb2d;
     public int health = 3;
     public float speed = 3f;
     public PlayerController playerController;
     public GameObject directionIndicator;
+    private Material matWhite;
+    private Material matDefault;
+    public Animator anim;
+    private static readonly int IsDead = Animator.StringToHash("isDead");
 
     private void Awake()
     {
-        spr.color = aliveSprite;
         playerController = FindObjectOfType<PlayerController>();
+        matWhite = Resources.Load("WhiteFlash", typeof(Material)) as Material; 
+        matDefault = spr.material;
     }
 
     private void Update()
@@ -31,7 +35,17 @@ public class Zombie : MonoBehaviour
         }
 
         var currentTarget = playerController.busyCharacter.transform.position;
-        var direction = currentTarget - transform.position;
+        var direction = (currentTarget - transform.position).normalized;
+        
+        if (direction.x < 0)
+        {
+            spr.transform.localScale = new Vector3(-1, 1, 1);
+        }
+        else
+        {
+            spr.transform.localScale = new Vector3(1, 1, 1);
+        }
+        
         var rot = MyUtils.GetAngleFromVectorFloat(direction);
         directionIndicator.transform.rotation = Quaternion.Euler(0,0, rot);
         Vector2 newPosition = Vector2.MoveTowards(transform.position, currentTarget, Time.deltaTime * speed);
@@ -48,6 +62,7 @@ public class Zombie : MonoBehaviour
         if (other.CompareTag("Bullet"))
         {
             Destroy(other.gameObject);
+
             TakeDamage();
         }
 
@@ -59,6 +74,8 @@ public class Zombie : MonoBehaviour
 
     private void TakeDamage()
     {
+        spr.material = matWhite;
+        Invoke("SwapMaterialToDefault", .1f);
         health--;
         if (health <= 0)
         {
@@ -68,12 +85,17 @@ public class Zombie : MonoBehaviour
 
     private void Dead()
     {
+        anim.SetBool(IsDead, true);
         isDead = true;
-        spr.color = deadSprite;
     }
 
     private void Attack()
     {
         
+    }
+    
+    private void SwapMaterialToDefault()
+    {
+        spr.material = matDefault;
     }
 }

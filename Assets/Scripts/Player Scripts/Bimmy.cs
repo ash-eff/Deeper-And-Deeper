@@ -17,6 +17,7 @@ public class Bimmy : PlayerCharacter
     public float lastShot = 0;
     public GameObject bulletPrefab;
     public Transform muzzlePosition;
+    private static readonly int IsCarrying = Animator.StringToHash("IsCarrying");
 
     public override void Update()
     {
@@ -49,6 +50,7 @@ public class Bimmy : PlayerCharacter
                 if (canPlaceBody)
                 {
                     isHoldingBody = false;
+                    anim.SetBool(IsCarrying, false);
                     Destroy(zombie.gameObject);
                     zombie = null;
                     currentHole.hasBody = true;
@@ -56,6 +58,7 @@ public class Bimmy : PlayerCharacter
                 else
                 {
                     isHoldingBody = false;
+                    anim.SetBool(IsCarrying, false);
                     zombie.transform.position = transform.position;
                     zombie.transform.parent = null;
                 }
@@ -68,6 +71,7 @@ public class Bimmy : PlayerCharacter
                     zombie.transform.position = carryPosition.position;
                     zombie.transform.parent = carryPosition;
                     isHoldingBody = true;
+                    anim.SetBool(IsCarrying, true);
                 }
             }
         }

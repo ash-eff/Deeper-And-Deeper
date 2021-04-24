@@ -42,6 +42,8 @@ public class PlayerController : MonoBehaviour
         if (controlledCharacter != null)
         {
             controlledCharacter.PlayerCharacterMove(directionAxis);
+            controlledCharacter.SpriteFlip();
+            controlledCharacter.RotateFist();
         }
     }
 

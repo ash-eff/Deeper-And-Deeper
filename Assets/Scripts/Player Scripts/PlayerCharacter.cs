@@ -8,9 +8,12 @@ using UnityEngine.InputSystem;
 public class PlayerCharacter : MonoBehaviour
 {
     [SerializeField] private GameObject cursor;
+    [SerializeField] private GameObject fist;
+    [SerializeField] private GameObject weapon;
     [SerializeField] private float speed;
     [SerializeField] private Rigidbody2D rigidbody2D;
-    [SerializeField] private float radius;
+    [SerializeField] private SpriteRenderer spr;
+    public Animator anim;
     public bool isSelected = false;
     public bool isBusy = false;
     private Vector3 velocity = Vector3.zero;
@@ -20,6 +23,9 @@ public class PlayerCharacter : MonoBehaviour
     private Vector2 mousePosition;
     private PlayerControls playerControls;
     private Camera cam;
+    private float fistXPosition;
+
+    private static readonly int IsIdle = Animator.StringToHash("IsIdle");
     //public float angleToCursor;
     
     private void OnEnable()
@@ -34,6 +40,8 @@ public class PlayerCharacter : MonoBehaviour
 
     private void Awake()
     {
+        fistXPosition = fist.transform.localPosition.x;
+        anim.SetBool(IsIdle, true);
         cam = Camera.main;
         playerControls = new PlayerControls();
         playerControls.Gameplay.MousePosition.performed += cxt => SetMousePosition(cxt.ReadValue<Vector2>());
@@ -68,11 +76,47 @@ public class PlayerCharacter : MonoBehaviour
         {
             Vector3 targetVelocity = new Vector3(dir.x, dir.y) * speed;
             rigidbody2D.velocity = Vector3.SmoothDamp(rigidbody2D.velocity, targetVelocity, ref velocity, movementSmoothing);
+            
+            if(dir == Vector2.zero)
+                anim.SetBool(IsIdle, true);
+            else
+                anim.SetBool(IsIdle, false);
         }
         else
         {
             rigidbody2D.velocity = Vector3.zero;
+            anim.SetBool(IsIdle, true);
         }
+    }
+    
+    public void SpriteFlip()
+    {
+        if (cursorDirection.x < 0)
+        {
+            spr.transform.localScale = new Vector3(-1, 1, 1);
+        }
+        else
+        {
+            spr.transform.localScale = new Vector3(1, 1, 1);
+        }
+    }
+
+    public void RotateFist()
+    {
+        if (cursorDirection.x < 0)
+        {
+            fist.transform.localPosition = new Vector3(-fistXPosition, fist.transform.localPosition.y, 0);
+            weapon.transform.localScale = new Vector3(1, -1, 1);
+        }
+        else
+        {
+            fist.transform.localPosition = new Vector3(fistXPosition, fist.transform.localPosition.y, (1));
+            weapon.transform.localScale = new Vector3(1, 1, 1);
+        }
+        
+        var dir = cursor.transform.position - transform.position;
+        var rot = MyUtils.GetAngleFromVectorFloat(dir);
+        fist.transform.rotation = Quaternion.Euler(0,0,rot);
     }
     
     private void AdjustCursorPosition()
@@ -84,7 +128,7 @@ public class PlayerCharacter : MonoBehaviour
 
         cursor.transform.position = convertedMousePos;
         cursorDirection = new Vector3(aimDirection.x, aimDirection.y, 0f);
-        ;
+        
         //Vector3 clampedPos = cursor.transform.position;
         //clampedPos.x = Mathf.Clamp(cursor.transform.position.x, originPos.x - screenBounds.x, originPos.x + screenBounds.x);
         //clampedPos.z = Mathf.Clamp(cursor.transform.position.z, originPos.z - screenBounds.y, originPos.z + screenBounds.y);

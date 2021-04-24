@@ -19,6 +19,8 @@ public class Jimmy : PlayerCharacter
     [SerializeField] private GameObject moundPrefab;
 
     private Hole currentHole;
+    private static readonly int IsDigging = Animator.StringToHash("IsDigging");
+    private static readonly int IsFilling = Animator.StringToHash("IsFilling");
 
 
     public override void ActionOne()
@@ -37,6 +39,8 @@ public class Jimmy : PlayerCharacter
 
     IEnumerator DigAHole()
     {
+        Debug.Log("Potatoe");
+        anim.SetBool(IsDigging, true);
         isBusy = true;
         progressBar.fillAmount = 0;
         progressBarObj.gameObject.SetActive(true);
@@ -48,12 +52,13 @@ public class Jimmy : PlayerCharacter
 
         isBusy = false;
         progressBarObj.gameObject.SetActive(false);
-
+        anim.SetBool(IsDigging, false);
         Instantiate(holePrefab, transform.position, quaternion.identity);
     }
     
     IEnumerator FillAHole()
     {
+        anim.SetBool(IsFilling, true);
         isBusy = true;
         progressBar.fillAmount = 0;
         progressBarObj.gameObject.SetActive(true);
@@ -69,6 +74,7 @@ public class Jimmy : PlayerCharacter
         var currentHolePos = currentHole.transform.position;
         Destroy(currentHole.gameObject);
         currentHole = null;
+        anim.SetBool(IsFilling, false);
         Instantiate(moundPrefab, currentHolePos, quaternion.identity);
     }
 
