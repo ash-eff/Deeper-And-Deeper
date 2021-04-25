@@ -7,11 +7,10 @@ public class Bimmy : PlayerCharacter
 {
     public bool isHoldingBody;
     public Zombie zombie;
-    public Hole currentHole;
+    public Plot currentPlot;
     public bool canPlaceBody;
     public Transform carryPosition;
-    public GameObject pickupIndicator;
-    public GameObject buryIndicator;
+    public GameObject rightMouseIndicator;
     public bool isShooting = false;
     public float rateOfFire;
     public float lastShot = 0;
@@ -43,38 +42,44 @@ public class Bimmy : PlayerCharacter
 
     public override void ActionTwo()
     {
-        if (isSelected)
+        if (gameController.canTakeACtion)
         {
-            if (isHoldingBody)
+            if (isSelected)
             {
-                if (canPlaceBody)
+                if (isHoldingBody)
                 {
-                    isHoldingBody = false;
-                    anim.SetBool(IsCarrying, false);
-                    Destroy(zombie.gameObject);
-                    zombie = null;
-                    currentHole.hasBody = true;
+                    if (canPlaceBody)
+                    {
+                        isHoldingBody = false;
+                        anim.SetBool(IsCarrying, false);
+                        zombie.transform.position = currentPlot.transform.position;
+                        zombie.transform.parent = null;
+                        zombie.Deactivate();
+                        currentPlot.PlaceBodyInHole(zombie);
+                        zombie = null;
+                    }
+                    else
+                    {
+                        isHoldingBody = false;
+                        anim.SetBool(IsCarrying, false);
+                        zombie.transform.position = transform.position;
+                        zombie.transform.parent = null;
+                    }
                 }
                 else
                 {
-                    isHoldingBody = false;
-                    anim.SetBool(IsCarrying, false);
-                    zombie.transform.position = transform.position;
-                    zombie.transform.parent = null;
-                }
-            }
-            else
-            {
-                if (zombie != null && zombie.isDead)
-                {
-                    pickupIndicator.SetActive(false);
-                    zombie.transform.position = carryPosition.position;
-                    zombie.transform.parent = carryPosition;
-                    isHoldingBody = true;
-                    anim.SetBool(IsCarrying, true);
+                    if (zombie != null && zombie.isDead)
+                    {
+                        rightMouseIndicator.SetActive(false);
+                        zombie.transform.position = carryPosition.position;
+                        zombie.transform.parent = carryPosition;
+                        isHoldingBody = true;
+                        anim.SetBool(IsCarrying, true);
+                    }
                 }
             }
         }
+        
     }
     
     private void FireWeapon(float rot)
@@ -92,32 +97,30 @@ public class Bimmy : PlayerCharacter
     {
         if (isHoldingBody)
         {
-            if (other.CompareTag("Hole"))
+            if (other.CompareTag("Plot"))
             {
-                currentHole = other.gameObject.GetComponent<Hole>();
-                if (!currentHole.hasBody)
+                currentPlot = other.gameObject.GetComponent<Plot>();
+                if (!currentPlot.hasBody && currentPlot.hasBeenDug)
                 {
                     canPlaceBody = true;
-                    buryIndicator.SetActive(true);
+                    rightMouseIndicator.SetActive(true);
                 }
             }
         }
-
-
-        if (other.CompareTag("Zombie"))
+        else if (other.CompareTag("Zombie"))
         {
             zombie = other.gameObject.GetComponent<Zombie>();
             if(zombie.isDead)
-                pickupIndicator.SetActive(true);
+                rightMouseIndicator.SetActive(true);
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Hole"))
+        if (other.CompareTag("Plot"))
         {
             canPlaceBody = false;
-            buryIndicator.SetActive(false);
+            rightMouseIndicator.SetActive(false);
         }
         
         if (other.CompareTag("Zombie"))
@@ -125,7 +128,7 @@ public class Bimmy : PlayerCharacter
             if (!isHoldingBody)
             {
                 zombie = null;
-                pickupIndicator.SetActive(false);
+                rightMouseIndicator.SetActive(false);
             }
                 
         }

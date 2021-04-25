@@ -13,6 +13,9 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private float speed;
     [SerializeField] private Rigidbody2D rigidbody2D;
     [SerializeField] private SpriteRenderer spr;
+    [SerializeField] private GameObject[] lifeHearts;
+
+    [SerializeField] private GameObject playerSelectedIndicator;
     public Animator anim;
     public bool isSelected = false;
     public bool isBusy = false;
@@ -24,6 +27,11 @@ public class PlayerCharacter : MonoBehaviour
     private PlayerControls playerControls;
     private Camera cam;
     private float fistXPosition;
+    public GameController gameController;
+    private Material matWhite;
+    private Material matDefault;
+    
+    private int playerHealth = 3;
 
     private static readonly int IsIdle = Animator.StringToHash("IsIdle");
     //public float angleToCursor;
@@ -40,6 +48,9 @@ public class PlayerCharacter : MonoBehaviour
 
     private void Awake()
     {
+        matWhite = Resources.Load("WhiteFlash", typeof(Material)) as Material; 
+        matDefault = spr.material;
+        gameController = FindObjectOfType<GameController>();
         fistXPosition = fist.transform.localPosition.x;
         anim.SetBool(IsIdle, true);
         cam = Camera.main;
@@ -59,12 +70,15 @@ public class PlayerCharacter : MonoBehaviour
 
     public void PlayerSelected()
     {
+        playerSelectedIndicator.SetActive(true);
         isSelected = true;
         cursor.SetActive(true);
     }
 
     public void PlayerDeselected()
     {
+        playerSelectedIndicator.SetActive(false);
+
         isSelected = false;
         rigidbody2D.velocity = Vector2.zero;
         cursor.SetActive(false);
@@ -81,12 +95,22 @@ public class PlayerCharacter : MonoBehaviour
                 anim.SetBool(IsIdle, true);
             else
                 anim.SetBool(IsIdle, false);
+            
+            ClampPlayerToMap();
         }
         else
         {
             rigidbody2D.velocity = Vector3.zero;
             anim.SetBool(IsIdle, true);
         }
+    }
+    
+    public void ClampPlayerToMap()
+    {
+        Vector2 clampedPos = transform.position;
+        clampedPos.x = Mathf.Clamp(transform.position.x, -12.5f, 12.5f);
+        clampedPos.y = Mathf.Clamp(transform.position.y, -8f, 8f );
+        transform.position = clampedPos;
     }
     
     public void SpriteFlip()
@@ -150,6 +174,23 @@ public class PlayerCharacter : MonoBehaviour
     public virtual void ActionOneCancelled()
     {
         
+    }
+
+    public void TakeDamage()
+    {
+        spr.material = matWhite;
+        Invoke("SwapMaterialToDefault", .1f);
+        playerHealth--;
+        lifeHearts[playerHealth].SetActive(false);
+        if (playerHealth <= 0)
+        {
+            Debug.Log("Game Over");
+        }
+    }
+    
+    private void SwapMaterialToDefault()
+    {
+        spr.material = matDefault;
     }
     
     

@@ -9,6 +9,11 @@ TagManager:
   - Zombie
   - PlayerBullet
   - Bullet
+  - Plot
+  - Jimmy
+  - Bimmy
+  - Enterance
+  - Minimap
   layers:
   - Default
   - TransparentFX
@@ -16,7 +21,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - Minimap
   - 
   - 
   - 

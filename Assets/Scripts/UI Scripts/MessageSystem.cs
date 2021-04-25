@@ -25,11 +25,6 @@ public class MessageSystem : MonoBehaviour
         textComponent = GetComponentInChildren<TMP_Text>();
     }
 
-    private void Start()
-    {
-        DisplayMessage("Hello World", 5);
-    }
-
     public void DisplayMessage(string message, int numberOfTimes)
     {
         StopMessage();
