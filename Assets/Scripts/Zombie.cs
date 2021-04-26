@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Ash.MyUtils;
 using UnityEngine;
 using UnityEngine.Timeline;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class Zombie : MonoBehaviour
 {
@@ -12,7 +14,7 @@ public class Zombie : MonoBehaviour
     public Rigidbody2D rb2d;
     public int health = 3;
     public float speed = 3f;
-    private float currentSpeed;
+    public float currentSpeed;
     public PlayerController playerController;
     public GameObject directionIndicator;
     private Material matWhite;
@@ -22,17 +24,33 @@ public class Zombie : MonoBehaviour
     private Vector3 currentTarget;
     private Vector2 closestEntrance;
     private bool inGraveyard = false;
+    private bool isAttacking = false;
     private ZombieSpawner zombieSpawner;
     private bool canAttack = true;
     private static readonly int IsAttacking = Animator.StringToHash("isAttacking");
-
+    private Vector3 randomOffset;
+    private GameController gameController;
+    public GameObject riseIndicator;
+    public Image riseFillBar;
+    public float riseTimer;
+    public bool hasBeenPlacedInTheGround = false;
+    public AudioSource zombieHurt;
+    public AudioSource zombieDead;
+    public AudioHolder audioHolder;
+    
     private void Awake()
     {
+        audioHolder = FindObjectOfType<AudioHolder>();
+        zombieHurt = audioHolder.zombieHurt;
+        zombieDead = audioHolder.zombieDead;
+
+        gameController = FindObjectOfType<GameController>();
         playerController = FindObjectOfType<PlayerController>();
         matWhite = Resources.Load("WhiteFlash", typeof(Material)) as Material; 
         matDefault = spr.material;
         zombieSpawner = FindObjectOfType<ZombieSpawner>();
         currentSpeed = speed * 3;
+        randomOffset = new Vector3(Random.Range(-.5f, .5f), Random.Range(-.5f, .5f), 0);
 
     }
 
@@ -43,17 +61,21 @@ public class Zombie : MonoBehaviour
 
     private void Update()
     {
+        if (gameController.gameOver) return;
+        
         if (isDead)
         {
             directionIndicator.SetActive(false);
             return;
         }
 
+        if (isAttacking) return;
+
         if (!inGraveyard)
             currentTarget = closestEntrance;
         else
-            currentTarget = playerController.busyCharacter.transform.position;
-        
+            currentTarget = playerController.busyCharacter.transform.position + randomOffset;
+
         var direction = (currentTarget - transform.position).normalized;
         
         Debug.DrawLine(transform.position, currentTarget, Color.red);
@@ -75,6 +97,8 @@ public class Zombie : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (gameController.gameOver) return;
+        
         if (isDead)
         {
             return;
@@ -89,6 +113,7 @@ public class Zombie : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
+            isAttacking = true;
             anim.SetBool(IsAttacking, true);
             PlayerCharacter player = other.gameObject.GetComponentInParent<PlayerCharacter>();
             StartCoroutine(Attack(player));
@@ -96,7 +121,7 @@ public class Zombie : MonoBehaviour
 
         if (other.CompareTag("Enterance"))
         {
-            currentSpeed = speed;
+            currentSpeed = Random.Range(1.5f, 2.5f);
             inGraveyard = true;
         }
     }
@@ -105,6 +130,7 @@ public class Zombie : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            isAttacking = false;
             canAttack = false;
         }
     }
@@ -130,6 +156,7 @@ public class Zombie : MonoBehaviour
     public void Deactivate()
     {
         spr.enabled = false;
+        hasBeenPlacedInTheGround = true;
     }
 
     public void Reanimate()
@@ -140,13 +167,43 @@ public class Zombie : MonoBehaviour
         anim.SetBool(IsDead, false);
     }
 
+    public void ZombieRise()
+    {
+        StartCoroutine(IZombieRise());
+
+        IEnumerator IZombieRise()
+        {
+            riseIndicator.SetActive(true);
+            riseFillBar.fillAmount = 0;
+            riseFillBar.gameObject.SetActive(true);
+            
+            while (!hasBeenPlacedInTheGround)
+            {
+                riseFillBar.fillAmount += Time.deltaTime / riseTimer;
+                if (riseFillBar.fillAmount >= 1f)
+                {
+                    
+                    Reanimate();
+                    break;
+                }
+
+                yield return null;
+            }
+            
+            riseIndicator.SetActive(false);
+        }
+    }
+
+
     private void TakeDamage()
     {
+        if (gameController.gameOver) return;
         if (!inGraveyard) return;
         
         spr.material = matWhite;
         Invoke("SwapMaterialToDefault", .1f);
         health--;
+        zombieHurt.Play();
         if (health <= 0)
         {
             Dead();
@@ -155,6 +212,7 @@ public class Zombie : MonoBehaviour
 
     private void Dead()
     {
+        zombieDead.Play();
         anim.SetBool(IsDead, true);
         isDead = true;
     }
@@ -167,6 +225,7 @@ public class Zombie : MonoBehaviour
             player.TakeDamage();
             // wait
             yield return new WaitForSeconds(1.5f);
+            if (gameController.gameOver) break;
         }
 
         canAttack = true;

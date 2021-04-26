@@ -15,6 +15,9 @@ public class Jimmy : PlayerCharacter
     [SerializeField] private Image progressBar;
     [SerializeField] private float actionLength;
     [SerializeField] private bool canFillHole;
+    public AudioSource shovelSound1;
+    public AudioSource shovelSound2;
+
 
     public Plot currentPlot;
     private static readonly int IsDigging = Animator.StringToHash("IsDigging");
@@ -23,7 +26,7 @@ public class Jimmy : PlayerCharacter
 
     public override void ActionOne()
     {
-        if (gameController.canTakeACtion)
+        if (gameController.canTakeACtion && !gameController.gameOver)
         {
             if (isSelected && !isBusy && currentPlot != null)
             {
@@ -37,7 +40,7 @@ public class Jimmy : PlayerCharacter
     
     public override void ActionTwo()
     {
-        if (gameController.canTakeACtion)
+        if (gameController.canTakeACtion && !gameController.gameOver)
         {
             if (isSelected && !isBusy && currentPlot != null)
             {
@@ -142,5 +145,15 @@ public class Jimmy : PlayerCharacter
             leftMouseIndicator.SetActive(false);
             rightMouseIndicator.SetActive(false);
         }
+    }
+    
+    public void DigSound()
+    {
+        shovelSound1.Play();
+    }
+    
+    public void FillSound()
+    {
+        shovelSound2.Play();
     }
 }

@@ -145,6 +145,7 @@ public class Plot : MonoBehaviour
     IEnumerator ResetPlot()
     {
         collider2D.enabled = false;
+        gameController.UpdateZombieCount();
         var waitTime = resetTime / 3;
         yield return new WaitForSeconds(waitTime);
         spr.sprite = growSprite2;
@@ -152,11 +153,9 @@ public class Plot : MonoBehaviour
         spr.sprite = growSprite3;
         yield return new WaitForSeconds(waitTime);
         spr.sprite = baseSprite;
-
         hasBody = false;
         currentZombie.gameObject.SetActive(false);
         currentZombie = null;
-        gameController.UpdateZombieCount();
         //digIndicator.SetActive(true);
         canBeDug = true;
         collider2D.enabled = true;

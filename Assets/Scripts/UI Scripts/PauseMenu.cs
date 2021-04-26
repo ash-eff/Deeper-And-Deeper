@@ -6,12 +6,11 @@ using UnityEngine.UI;
 using Ash.MyUtils;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
     private PlayerControls controls;
-
-    public GameObject firstSelected;
     
     public GameObject pauseMenu;
     public Dropdown resolutionDropdown;
@@ -54,28 +53,7 @@ public class PauseMenu : MonoBehaviour
             ActivateControllerUI(true);
             ActivateKeyboardUI(false);
         }
-
-        InputSystem.onDeviceChange +=
-            (device, change) =>
-            {
-                switch (change)
-                {
-                    case InputDeviceChange.Added:
-                        ActivateControllerUI(true);
-                        ActivateKeyboardUI(false);
-                        break;
-                    case InputDeviceChange.Disconnected:
-                        ActivateControllerUI(false);
-                        ActivateKeyboardUI(true);
-                        break;
-                    case InputDeviceChange.Removed:
-                        // Remove from Input System entirely; by default, Devices stay in the system once discovered.
-                        break;
-                    default:
-                        // See InputDeviceChange reference for other event types.
-                        break;
-                }
-            };
+        
         pauseMenu.SetActive(false);
     }
 
@@ -135,11 +113,13 @@ public class PauseMenu : MonoBehaviour
 
     public void RestartTheGame()
     {
-        Debug.Log("Loading first scene");
+        SaveAndExit();
+        SceneManager.LoadScene(0);
     }
 
     public void SaveAndExit()
     {
+        Time.timeScale = 1;
         isPaused = false;
         SaveAudioPrefs();
         SaveResolutionPrefs();
@@ -158,12 +138,14 @@ public class PauseMenu : MonoBehaviour
         pauseMenu.SetActive(isPaused);
         if (isPaused)
         {
-            EventSystem.current.SetSelectedGameObject(null);
-            EventSystem.current.SetSelectedGameObject(firstSelected);
+            Time.timeScale = 0;
+        }
+
+        if (!isPaused)
+        {
+            SaveAndExit();
         }
             
-        if(!isPaused)
-            SaveAndExit();
     }
 
     //private void ClosePauseMenu()

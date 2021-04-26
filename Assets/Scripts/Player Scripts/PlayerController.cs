@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     public PlayerCharacter controlledCharacter;
     public PlayerCharacter busyCharacter;
     public CameraController cameraController;
+    private GameController gameController;
     
     private Vector2 directionAxis;
 
@@ -27,6 +28,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        gameController = FindObjectOfType<GameController>();
         playerControls = new PlayerControls();
         playerControls.Gameplay.Swap.performed += cxt => SwapCharacters();
         playerControls.Gameplay.Move.performed += cxt => SetMovement(cxt.ReadValue<Vector2>());
@@ -39,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (controlledCharacter != null)
+        if (controlledCharacter != null && !gameController.gameOver)
         {
             controlledCharacter.PlayerCharacterMove(directionAxis);
             controlledCharacter.SpriteFlip();
@@ -49,17 +51,20 @@ public class PlayerController : MonoBehaviour
 
     private void SwapCharacters()
     {
-        currentCharacterIndex++;
-        if (currentCharacterIndex > availableCharacters.Length - 1)
+        if(!gameController.gameOver)
         {
-            currentCharacterIndex = 0;
-        }
+            currentCharacterIndex++;
+            if (currentCharacterIndex > availableCharacters.Length - 1)
+            {
+                currentCharacterIndex = 0;
+            }
 
-        controlledCharacter.PlayerDeselected();
-        busyCharacter = controlledCharacter;
-        controlledCharacter = availableCharacters[currentCharacterIndex];
-        controlledCharacter.PlayerSelected();
-        cameraController.AssignTarget(controlledCharacter.transform);  
+            controlledCharacter.PlayerDeselected();
+            busyCharacter = controlledCharacter;
+            controlledCharacter = availableCharacters[currentCharacterIndex];
+            controlledCharacter.PlayerSelected();
+            cameraController.AssignTarget(controlledCharacter.transform); 
+        }
     }
 
     private void SetMovement(Vector2 movement) => directionAxis = movement;

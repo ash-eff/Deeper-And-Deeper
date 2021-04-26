@@ -333,7 +333,7 @@ MonoBehaviour:
   canBeDug: 1
   isBeingFilled: 0
   canBeFilled: 0
-  resetTime: 6
+  resetTime: 12
   riseIndicator: {fileID: 8575838954573327517}
   riseFillBar: {fileID: 8575838954556651677}
   riseTimer: 6

@@ -70,17 +70,6 @@ public class @PlayerControls : IInputActionCollection, IDisposable
             ""bindings"": [
                 {
                     ""name"": """",
-                    ""id"": ""bf9ef834-42b1-4ed5-bbc6-7b42a3ef26d7"",
-                    ""path"": ""<Gamepad>/start"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""PauseMenu"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""d7a8a0f1-c9d8-416d-9f42-b10db7febb37"",
                     ""path"": ""<Keyboard>/escape"",
                     ""interactions"": """",

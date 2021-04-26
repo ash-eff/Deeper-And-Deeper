@@ -14,7 +14,8 @@ public class PlayerCharacter : MonoBehaviour
     [SerializeField] private Rigidbody2D rigidbody2D;
     [SerializeField] private SpriteRenderer spr;
     [SerializeField] private GameObject[] lifeHearts;
-
+    public GameObject damageFlash;
+    
     [SerializeField] private GameObject playerSelectedIndicator;
     public Animator anim;
     public bool isSelected = false;
@@ -30,8 +31,9 @@ public class PlayerCharacter : MonoBehaviour
     public GameController gameController;
     private Material matWhite;
     private Material matDefault;
+    private CameraController cameraController;
     
-    private int playerHealth = 3;
+    private int playerHealth = 5;
 
     private static readonly int IsIdle = Animator.StringToHash("IsIdle");
     //public float angleToCursor;
@@ -48,6 +50,7 @@ public class PlayerCharacter : MonoBehaviour
 
     private void Awake()
     {
+        cameraController = FindObjectOfType<CameraController>();
         matWhite = Resources.Load("WhiteFlash", typeof(Material)) as Material; 
         matDefault = spr.material;
         gameController = FindObjectOfType<GameController>();
@@ -178,20 +181,27 @@ public class PlayerCharacter : MonoBehaviour
 
     public void TakeDamage()
     {
+        if (gameController.gameOver) return;
+        
+        cameraController.CameraShake();
+        damageFlash.SetActive(true);
         spr.material = matWhite;
         Invoke("SwapMaterialToDefault", .1f);
         playerHealth--;
         lifeHearts[playerHealth].SetActive(false);
         if (playerHealth <= 0)
         {
-            Debug.Log("Game Over");
+            gameController.GameOver();
         }
     }
     
     private void SwapMaterialToDefault()
     {
+        damageFlash.SetActive(false);
         spr.material = matDefault;
     }
+    
+
     
     
 }

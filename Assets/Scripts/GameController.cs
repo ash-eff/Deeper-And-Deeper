@@ -13,8 +13,10 @@ public class GameController : MonoBehaviour
     private int currentZombiesSpawned;
     private int numberOfZombiesStillAlive;
     public bool canTakeACtion = false;
-
+    public bool gameOver = false;
     private int waveNumber = 0;
+    public int waveWinNumber = 2;
+    public GameObject gameWonPanel;
 
     [SerializeField] private MessageSystem messageSystem;
 
@@ -48,17 +50,31 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public void GameOver()
+    {
+        gameOver = true;
+        LevelLoader levelLoader = FindObjectOfType<LevelLoader>();
+        levelLoader.LoadNextLevel();
+    }
+
     IEnumerator AfterWave()
     {
         canTakeACtion = false;
-        yield return new WaitForSeconds(2f);
         messageSystem.StopMessage();
         messageSystem.DisplayMessage("WAVE COMPLETE" , 2);
         yield return new WaitForSeconds(2f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("GET READY" , 2);
 
-        StartCoroutine(BetweenWavecounter());
+        if (waveNumber != waveWinNumber)
+        {
+            messageSystem.StopMessage();
+            messageSystem.DisplayMessage("GET READY" , 2);
+
+            StartCoroutine(BetweenWavecounter());
+        }
+        else
+        {
+            GameWon();
+        }
     }
 
     IEnumerator BetweenWavecounter()
@@ -88,6 +104,19 @@ public class GameController : MonoBehaviour
         currentZombiesSpawned = initialNumberToSpawn + Mathf.RoundToInt(waveNumber / 2f);
         numberOfZombiesStillAlive = currentZombiesSpawned;
         zombieSpawner.StartSpawning(currentZombiesSpawned);
+    }
+
+    private void GameWon()
+    {
+        Time.timeScale = 0;
+        gameWonPanel.SetActive(true);
+    }
+
+    public void ResumeGame()
+    {
+        Time.timeScale = 1;
+        gameWonPanel.SetActive(false);
+        StartCoroutine(BetweenWavecounter());
     }
 }
 

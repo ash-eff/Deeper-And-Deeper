@@ -17,6 +17,7 @@ public class Bimmy : PlayerCharacter
     public GameObject bulletPrefab;
     public Transform muzzlePosition;
     private static readonly int IsCarrying = Animator.StringToHash("IsCarrying");
+    public AudioSource gun;
 
     public override void Update()
     {
@@ -25,11 +26,24 @@ public class Bimmy : PlayerCharacter
         {
             FireWeapon(angleToCursor);
         }
+
+        if (zombie != null)
+        {
+            if (!zombie.isDead && isHoldingBody)
+            {
+                isHoldingBody = false;
+                anim.SetBool(IsCarrying, false);
+                zombie.transform.position = transform.position;
+                zombie.transform.parent = null;
+            }
+        }
     }
+
+
     
     public override void ActionOne()
     {
-        if (isSelected && !isHoldingBody)
+        if (isSelected && !isHoldingBody && !gameController.gameOver)
         {
             isShooting = true;
         }
@@ -42,7 +56,7 @@ public class Bimmy : PlayerCharacter
 
     public override void ActionTwo()
     {
-        if (gameController.canTakeACtion)
+        if (gameController.canTakeACtion && !gameController.gameOver)
         {
             if (isSelected)
             {
@@ -86,6 +100,7 @@ public class Bimmy : PlayerCharacter
     {
         if (Time.time > rateOfFire + lastShot && !isHoldingBody)
         {
+            gun.Play();
             //cam.CameraShake();
             GameObject obj = Instantiate(bulletPrefab, muzzlePosition.position, Quaternion.Euler(0,0, rot));
             //obj.GetComponent<Bullet>().rot = rot;
