@@ -37,6 +37,7 @@ public class Zombie : MonoBehaviour
     public AudioSource zombieHurt;
     public AudioSource zombieDead;
     public AudioHolder audioHolder;
+    private Vector3 direction;
     
     private void Awake()
     {
@@ -49,7 +50,7 @@ public class Zombie : MonoBehaviour
         matWhite = Resources.Load("WhiteFlash", typeof(Material)) as Material; 
         matDefault = spr.material;
         zombieSpawner = FindObjectOfType<ZombieSpawner>();
-        currentSpeed = speed * 3;
+        currentSpeed = 6f;
         randomOffset = new Vector3(Random.Range(-.5f, .5f), Random.Range(-.5f, .5f), 0);
 
     }
@@ -76,7 +77,7 @@ public class Zombie : MonoBehaviour
         else
             currentTarget = playerController.busyCharacter.transform.position + randomOffset;
 
-        var direction = (currentTarget - transform.position).normalized;
+        direction = (currentTarget - transform.position).normalized;
         
         Debug.DrawLine(transform.position, currentTarget, Color.red);
         
@@ -88,10 +89,16 @@ public class Zombie : MonoBehaviour
         {
             spr.transform.localScale = new Vector3(1, 1, 1);
         }
+    }
+
+    private void FixedUpdate()
+    {
+        if (isDead) return;
         
-        var rot = MyUtils.GetAngleFromVectorFloat(direction);
+        var playerDirection = (playerController.busyCharacter.transform.position - transform.position).normalized;
+        var rot = MyUtils.GetAngleFromVectorFloat(playerDirection);
         directionIndicator.transform.rotation = Quaternion.Euler(0,0, rot);
-        Vector2 newPosition = Vector2.MoveTowards(transform.position, currentTarget, Time.deltaTime * currentSpeed);
+        Vector2 newPosition = Vector2.MoveTowards(transform.position, currentTarget, Time.fixedDeltaTime * currentSpeed);
         rb2d.MovePosition(newPosition);
     }
 
@@ -121,7 +128,7 @@ public class Zombie : MonoBehaviour
 
         if (other.CompareTag("Enterance"))
         {
-            currentSpeed = Random.Range(1.5f, 2.5f);
+            currentSpeed = Random.Range(.75f, 1.5f);
             inGraveyard = true;
         }
     }
@@ -161,6 +168,7 @@ public class Zombie : MonoBehaviour
 
     public void Reanimate()
     {
+        canAttack = true;
         spr.enabled = true;
         health = 3;
         isDead = false;
@@ -212,6 +220,7 @@ public class Zombie : MonoBehaviour
 
     private void Dead()
     {
+        canAttack = false;
         zombieDead.Play();
         anim.SetBool(IsDead, true);
         isDead = true;

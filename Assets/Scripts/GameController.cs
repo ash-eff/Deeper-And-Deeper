@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -17,9 +18,9 @@ public class GameController : MonoBehaviour
     private int waveNumber = 0;
     public int waveWinNumber = 2;
     public GameObject gameWonPanel;
-
-    [SerializeField] private MessageSystem messageSystem;
-
+    public GameObject wavePanel;
+    public TextMeshProUGUI waveInd;
+    
     private void Awake()
     {
         zombieSpawner = FindObjectOfType<ZombieSpawner>();
@@ -60,14 +61,15 @@ public class GameController : MonoBehaviour
     IEnumerator AfterWave()
     {
         canTakeACtion = false;
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("WAVE COMPLETE" , 2);
+        waveInd.text = "";
+        wavePanel.SetActive(true);
+        waveInd.text = "WAVE COMPLETE";
         yield return new WaitForSeconds(2f);
 
         if (waveNumber != waveWinNumber)
         {
-            messageSystem.StopMessage();
-            messageSystem.DisplayMessage("GET READY" , 2);
+            waveInd.text = "";
+            waveInd.text = "GET READY";
 
             StartCoroutine(BetweenWavecounter());
         }
@@ -75,27 +77,33 @@ public class GameController : MonoBehaviour
         {
             GameWon();
         }
+        
+        wavePanel.SetActive(false);
     }
 
     IEnumerator BetweenWavecounter()
     {
+        wavePanel.SetActive(true);
         waveNumber++;
         yield return new WaitForSeconds(2f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("WAVE " + waveNumber, 2);
+        waveInd.text = "";
+        waveInd.text = "wAVE " + waveNumber;
         yield return new WaitForSeconds(2f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("THREE", 1);
+        waveInd.text = "";
+        waveInd.text = "3";
         yield return new WaitForSeconds(1f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("TWO", 1);
+        waveInd.text = "";
+        waveInd.text = "2";
         yield return new WaitForSeconds(1f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("ONE", 1);
+        waveInd.text = "";
+        waveInd.text = "1";
         yield return new WaitForSeconds(1f);
-        messageSystem.StopMessage();
-        messageSystem.DisplayMessage("GO", 1);
+        waveInd.text = "";
+        waveInd.text = "GO";
         canTakeACtion = true;
+        yield return new WaitForSeconds(1f);
+        wavePanel.SetActive(false);
+        waveInd.text = "";
         SpawnNextWave();
     }
 
